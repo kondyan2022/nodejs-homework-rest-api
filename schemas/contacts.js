@@ -30,4 +30,8 @@ const updateContactSchema = Joi.object({
   .min(1)
   .messages({ "object.min": "missing fields" });
 
-module.exports = { addContactSchema, updateContactSchema };
+const notEmptySchema = Joi.object({}).unknown(true).min(1).messages({
+  "object.min": "missing fields",
+});
+
+module.exports = { addContactSchema, updateContactSchema, notEmptySchema };
