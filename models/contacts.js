@@ -1,56 +1,56 @@
-const fs = require("fs/promises");
-const path = require("path");
-const { nanoid } = require("nanoid");
+const { Schema, model } = require("mongoose");
+const { handleMongooseError } = require("../helpers");
 
-const contactsPath = path.join(__dirname, "contacts.json");
-console.log(contactsPath);
+const contactSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Set name for contact"],
+    },
+    email: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { versionKey: false, timestamps: true }
+);
 
-const listContacts = async () => {
-  const list = await fs.readFile(contactsPath);
-  return JSON.parse(list);
-};
+contactSchema.post("save", handleMongooseError);
 
-const getContactById = async (contactId) => {
-  const list = await listContacts();
-  const contact = list.find((elem) => elem.id === contactId);
-  return contact || null;
-};
+const Contact = model("contact", contactSchema);
 
-const removeContact = async (contactId) => {
-  const list = await listContacts();
-  const index = list.findIndex((elem) => elem.id === contactId);
-  if (index === -1) {
-    return null;
-  }
-  const [contact] = list.splice(index, 1);
-  await fs.writeFile(contactsPath, JSON.stringify(list, null, 2));
-  return contact;
-};
+const Joi = require("joi");
 
-const addContact = async ({ name, email, phone }) => {
-  const list = await listContacts();
-  const contact = { id: nanoid(), name, email, phone };
-  list.push(contact);
-  await fs.writeFile(contactsPath, JSON.stringify(list, null, 2));
-  return contact;
-};
+const addContactSchema = Joi.object({
+  name: Joi.string()
+    .min(2)
+    .pattern(/^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$/)
+    .required()
+    .messages({ "string.pattern.base": "invalid characters in the name" }),
+  email: Joi.string().email().required(),
+  phone: Joi.string()
+    .pattern(
+      /^[+(\d]?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/
+    )
+    .required()
+    .messages({ "string.pattern.base": "invalid phone number" }),
+  favorite: Joi.boolean(),
+}).messages({ "any.required": "missing required {#label} field" });
 
-const updateContact = async (contactId, data) => {
-  const list = await listContacts();
-  const index = list.findIndex((elem) => elem.id === contactId);
-  if (index === -1) {
-    return null;
-  }
-  const contact = { ...list[index], ...data };
-  list.splice(index, 1, contact);
-  await fs.writeFile(contactsPath, JSON.stringify(list, null, 2));
-  return contact;
-};
+const updateFavoriteSchema = Joi.object({
+  favorite: Joi.boolean().required(),
+}).messages({ "any.required": "missing field favorite" });
 
-module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-};
+const notEmptySchema = Joi.object({}).unknown(true).min(1).messages({
+  "object.min": "missing fields",
+});
+
+const schemas = { addContactSchema, notEmptySchema, updateFavoriteSchema };
+
+module.exports = { Contact, schemas };
