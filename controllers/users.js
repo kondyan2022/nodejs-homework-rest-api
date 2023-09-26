@@ -2,8 +2,13 @@ const bcrypt = require("bcrypt");
 const { User } = require("../models/user");
 const { HttpError, ctrlWrapper } = require("../helpers");
 const jwt = require("jsonwebtoken");
+const gavatar = require("gravatar");
+const path = require("path");
+const fs = require("fs/promises");
 
 const { SECRET_KEY } = process.env;
+
+const avatarsDir = path.join(__dirname, "../", "public", "avatars");
 
 const registration = async (req, res) => {
   const { email, password } = req.body;
@@ -13,8 +18,13 @@ const registration = async (req, res) => {
   }
 
   const hashPassword = await bcrypt.hash(password, 10);
+  const avatarURL = gavatar.url(email);
 
-  const newUser = await User.create({ ...req.body, password: hashPassword });
+  const newUser = await User.create({
+    ...req.body,
+    avatarURL,
+    password: hashPassword,
+  });
   res.status(201).json({
     user: { email: newUser.email, subscription: newUser.subscription },
   });
@@ -59,10 +69,27 @@ const updateUser = async (req, res) => {
   res.json({ email: user.email, subscription: user.subscription });
 };
 
+const updateAvatar = async (req, res, next) => {
+  const { _id } = req.user;
+  const { path: tempUpload, originalname } = req.file;
+  const filename = `${_id}_${originalname}`;
+  const resultUpload = path.join(avatarsDir, filename);
+  try {
+    await fs.rename(tempUpload, resultUpload);
+  } catch (error) {
+    fs.unlink(tempUpload);
+    next(error);
+  }
+  const avatarURL = path.join("avatars", filename);
+  await User.findByIdAndUpdate(_id, { avatarURL });
+  res.json({ avatarURL });
+};
+
 module.exports = {
   registration: ctrlWrapper(registration),
   login: ctrlWrapper(login),
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),
   updateUser: ctrlWrapper(updateUser),
+  updateAvatar: ctrlWrapper(updateAvatar),
 };
