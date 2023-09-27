@@ -1,8 +1,13 @@
 const express = require("express");
 const ctrl = require("../controllers/users");
-const { validateBody, upload, resizeAvatar } = require("../middlewares");
+const {
+  validateBody,
+  upload,
+  resizeAvatar,
+  isSingleFileExist,
+  authentificate,
+} = require("../middlewares");
 const { schemas } = require("../models/user");
-const authentificate = require("../middlewares/authentificate");
 
 const router = express.Router();
 
@@ -18,6 +23,7 @@ router.patch(
   "/avatars",
   authentificate,
   upload.single("avatar"),
+  isSingleFileExist,
   resizeAvatar,
   ctrl.updateAvatar
 );

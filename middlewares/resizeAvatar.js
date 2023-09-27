@@ -1,5 +1,6 @@
 const Jimp = require("jimp");
 const fs = require("fs/promises");
+const { HttpError } = require("../helpers");
 
 const resizeAvatar = async (req, res, next) => {
   const { path } = req.file;
@@ -11,7 +12,7 @@ const resizeAvatar = async (req, res, next) => {
   } catch (error) {
     error.status = 400;
     console.log(error);
-    fs.unlink(path);
+    await fs.unlink(path);
     next(error);
   }
 };
