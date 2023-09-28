@@ -1,8 +1,13 @@
 const express = require("express");
 const ctrl = require("../controllers/users");
-const { validateBody } = require("../middlewares");
+const {
+  validateBody,
+  upload,
+  resizeAvatar,
+  isSingleFileExist,
+  authentificate,
+} = require("../middlewares");
 const { schemas } = require("../models/user");
-const authentificate = require("../middlewares/authentificate");
 
 const router = express.Router();
 
@@ -14,7 +19,14 @@ router.post(
 router.post("/login", validateBody(schemas.loginSchema), ctrl.login);
 router.get("/current", authentificate, ctrl.getCurrent);
 router.post("/logout", authentificate, ctrl.logout);
-
+router.patch(
+  "/avatars",
+  authentificate,
+  upload.single("avatar"),
+  isSingleFileExist,
+  resizeAvatar,
+  ctrl.updateAvatar
+);
 router.patch(
   "",
   authentificate,
