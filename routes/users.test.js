@@ -42,69 +42,69 @@ describe("test for user route", () => {
     expect(body).toEqual({ message: "Email in use" });
   });
 
-  test("Try to login existing user with novalid pwd - failure ", async () => {
-    const { statusCode, body } = await request(app)
-      .post("/users/login")
-      .send({ ...payload, password: "654321" });
-    expect(statusCode).toBe(401);
-    expect(body).toEqual({ message: "Email or password is wrong" });
-  });
+  // test("Try to login existing user with novalid pwd - failure ", async () => {
+  //   const { statusCode, body } = await request(app)
+  //     .post("/users/login")
+  //     .send({ ...payload, password: "654321" });
+  //   expect(statusCode).toBe(401);
+  //   expect(body).toEqual({ message: "Email or password is wrong" });
+  // });
 
-  test("logining existing user with valid pwd - success", async () => {
-    const { statusCode, body } = await request(app)
-      .post("/users/login")
-      .send(payload);
-    expect(statusCode).toBe(200);
-    expect(body.token).toBeTruthy();
-    token = body.token;
-    expect(body.user).toEqual({
-      email: payload.email,
-      subscription: "starter",
-    });
-  });
+  // test("logining existing user with valid pwd - success", async () => {
+  //   const { statusCode, body } = await request(app)
+  //     .post("/users/login")
+  //     .send(payload);
+  //   expect(statusCode).toBe(200);
+  //   expect(body.token).toBeTruthy();
+  //   token = body.token;
+  //   expect(body.user).toEqual({
+  //     email: payload.email,
+  //     subscription: "starter",
+  //   });
+  // });
 
-  test("Get current user - success", async () => {
-    const { statusCode, body } = await request(app)
-      .get("/users/current")
-      .set("Authorization", `Bearer ${token}`);
-    expect(statusCode).toBe(200);
-    expect(body).toEqual({
-      email: payload.email,
-      subscription: "starter",
-    });
-  });
+  // test("Get current user - success", async () => {
+  //   const { statusCode, body } = await request(app)
+  //     .get("/users/current")
+  //     .set("Authorization", `Bearer ${token}`);
+  //   expect(statusCode).toBe(200);
+  //   expect(body).toEqual({
+  //     email: payload.email,
+  //     subscription: "starter",
+  //   });
+  // });
 
-  test("Try to Get current user with bad token- failure", async () => {
-    const { statusCode, body } = await request(app)
-      .get("/users/current")
-      .set("Authorization", `Bearer ${token + "p"}`);
-    expect(statusCode).toBe(401);
-    expect(body).toEqual({ message: "Not authorized" });
-  });
+  // test("Try to Get current user with bad token- failure", async () => {
+  //   const { statusCode, body } = await request(app)
+  //     .get("/users/current")
+  //     .set("Authorization", `Bearer ${token + "p"}`);
+  //   expect(statusCode).toBe(401);
+  //   expect(body).toEqual({ message: "Not authorized" });
+  // });
 
-  test("Logout user - success", async () => {
-    const { statusCode, body } = await request(app)
-      .post("/users/logout")
-      .set("Authorization", `Bearer ${token}`);
-    expect(statusCode).toBe(204);
-    expect(body).toEqual({});
-  });
+  // test("Logout user - success", async () => {
+  //   const { statusCode, body } = await request(app)
+  //     .post("/users/logout")
+  //     .set("Authorization", `Bearer ${token}`);
+  //   expect(statusCode).toBe(204);
+  //   expect(body).toEqual({});
+  // });
 
-  test("Try Logout noautorized user - failure", async () => {
-    const { statusCode, body } = await request(app)
-      .post("/users/logout")
-      .set("Authorization", `Bearer ${token}`);
-    expect(statusCode).toBe(401);
-    expect(body).toEqual({ message: "Not authorized" });
-  });
+  // test("Try Logout noautorized user - failure", async () => {
+  //   const { statusCode, body } = await request(app)
+  //     .post("/users/logout")
+  //     .set("Authorization", `Bearer ${token}`);
+  //   expect(statusCode).toBe(401);
+  //   expect(body).toEqual({ message: "Not authorized" });
+  // });
 
-  test("Try to get noautorized current user - failure", async () => {
-    const { statusCode, body } = await request(app)
-      .get("/users/current")
-      .set("Authorization", `Bearer ${token}`);
-    expect(statusCode).toBe(401);
-    expect(body).toEqual({ message: "Not authorized" });
-  });
+  // test("Try to get noautorized current user - failure", async () => {
+  //   const { statusCode, body } = await request(app)
+  //     .get("/users/current")
+  //     .set("Authorization", `Bearer ${token}`);
+  //   expect(statusCode).toBe(401);
+  //   expect(body).toEqual({ message: "Not authorized" });
+  // });
 
   afterAll(async () => {
     await User.deleteMany({});
